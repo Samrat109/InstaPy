@@ -74,57 +74,32 @@ def set_selenium_local_session(
     err_msg = ""
 
     firefox_options = Firefox_Options()
-
     if headless_browser:
-        firefox_options.add_argument("-headless")
-
-    if browser_profile_path is not None:
-        firefox_profile = webdriver.FirefoxProfile(browser_profile_path)
-    else:
-        firefox_profile = webdriver.FirefoxProfile()
-
-    if browser_executable_path is not None:
-        firefox_options.binary = browser_executable_path
-
-    # set "info" by default
-    # set "trace" for debubging, Development only
-    firefox_options.log.level = geckodriver_log_level
-
-    # set English language
-    firefox_profile.set_preference("intl.accept_languages", "en-US")
-    firefox_profile.set_preference("general.useragent.override", Settings.user_agent)
-
+        firefox_options.add_argument("--headless")
     if disable_image_load:
-        # permissions.default.image = 2: Disable images load,
-        # this setting can improve pageload & save bandwidth
-        firefox_profile.set_preference("permissions.default.image", 2)
-
-    if proxy_address and proxy_port:
-        firefox_profile.set_preference("network.proxy.type", 1)
-        firefox_profile.set_preference("network.proxy.http", proxy_address)
-        firefox_profile.set_preference("network.proxy.http_port", int(proxy_port))
-        firefox_profile.set_preference("network.proxy.ssl", proxy_address)
-        firefox_profile.set_preference("network.proxy.ssl_port", int(proxy_port))
-
-    # mute audio while watching stories
-    firefox_profile.set_preference("media.volume_scale", "0.0")
-
-    # prevent Hide Selenium Extension: error
-    firefox_profile.set_preference("dom.webdriver.enabled", False)
-    firefox_profile.set_preference("useAutomationExtension", False)
-    firefox_profile.set_preference("general.platform.override", "iPhone")
-    firefox_profile.update_preferences()
-
+        firefox_options.set_preference("permissions.default.image", 2)
+    if browser_profile_path is not None:
+        firefox_options.set_preference("profile", browser_profile_path)
+    if proxy_username and proxy_password:
+        firefox_options.set_preference("network.proxy.type", 1)
+        firefox_options.set_preference("network.proxy.http", proxy_address)
+        firefox_options.set_preference("network.proxy.http_port", proxy_port)
+        firefox_options.set_preference("network.proxy.ssl", proxy_address)
+        firefox_options.set_preference("network.proxy.ssl_port", proxy_port)
+    
     # geckodriver log in specific user logfolder
     geckodriver_log = "{}geckodriver.log".format(logfolder)
-
+    
     # prefer user path before downloaded one
     driver_path = geckodriver_path or get_geckodriver()
+    
     browser = webdriver.Firefox(
-        firefox_profile=firefox_profile,
-        executable_path=driver_path,
-        log_path=geckodriver_log,
         options=firefox_options,
+        service=webdriver.firefox.service.Service(
+            executable_path=driver_path,
+            log_path=geckodriver_log,
+            service_args=["--log", "info" if geckodriver_log_level == "info" else "debug"]
+        )
     )
 
     # add extension to hide selenium

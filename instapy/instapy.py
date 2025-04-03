@@ -23,8 +23,8 @@ from selenium.webdriver.common.by import By
 
 try:
     from pyvirtualdisplay import Display
-except ModuleNotFoundError:
-    pass
+except (ModuleNotFoundError, ImportError):
+    Display = None
 
 # import exceptions
 from selenium.common.exceptions import NoSuchElementException
@@ -127,7 +127,7 @@ class InstaPy:
         geckodriver_path: str = None,
         split_db: bool = False,
         bypass_security_challenge_using: str = "email",
-        security_codes: int = 0000,
+        security_codes: int = 0,  # Changed from 0000 to 0 to avoid octal interpretation
         want_check_browser: bool = True,
         browser_executable_path: str = None,
         geckodriver_log_level: str = "info",  # "info" by default
